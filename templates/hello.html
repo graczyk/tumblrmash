@@ -50,12 +50,16 @@
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Navbar example</h1>
-		<img src= {{ pic1 }} > <p>
+		<div align="left">
+		<img src= {{ pic1 }} > 
+		<form action="/update" method="post">
+	    <button type="submit" name="action" value="{{ pic1 }}">Choose 1</button>
+		</form> </div>
+		<div align="right">
 		<img src= {{ pic2 }} >
-        <p>To see the difference between static and fixed top navbars, just scroll.</p>
-        <p>
-          <a class="btn btn-lg btn-primary" href="../../components/#navbar">View navbar docs &raquo;</a>
-        </p>
+		<form action="/update" method="post">
+		<button type="submit" name="action" value="{{ pic2 }}">Choose 2</button>
+		</form></div>
       </div>
 
     </div> <!-- /container -->

@@ -15,12 +15,16 @@ def contact():
     #do something with this later, probably a github link
     return render_template("contact.html")
     
+@app.route('/update', methods=['GET', 'POST'])
+def update():
+    if request.method == 'POST':
+        pics[request.form["action"]] += 1
+    return mash()
+    
 @app.route('/')
 def mash():
     pic1 = random.choice(pics.keys())
     pic2 = random.choice(pics.keys())
-    pics[pic1] += 2
-    pics[pic2] += 7
     return render_template("hello.html", pic1 = pic1, pic2 = pic2)
 
 credentials = json.loads(open('tumblr_credentials.json', 'r').read())
