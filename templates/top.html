@@ -49,13 +49,15 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Navbar example</h1>
-		<img src= {{ pic1 }} > <p>
-		<img src= {{ pic2 }} >
-        <p>To see the difference between static and fixed top navbars, just scroll.</p>
-        <p>
-          <a class="btn btn-lg btn-primary" href="../../components/#navbar">View navbar docs &raquo;</a>
-        </p>
+        <h1>Cutest doges</h1>
+		<table>
+		{% for key, value in pics %}
+		   <tr>
+		        <th> {{ key }} </th>
+		        <td> {{ value }} </td>
+		   </tr>
+		{% endfor %}
+		</table>
       </div>
 
     </div> <!-- /container -->

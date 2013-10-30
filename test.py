@@ -1,6 +1,27 @@
 import pytumblr
 import json
 import random
+from flask import *
+
+app = Flask(__name__)
+
+@app.route('/top')
+def total():
+    newlist = sorted(pics.items(), key=lambda x: x[1]) #this is neat
+    return render_template("top.html", pics=reversed(newlist))
+    
+@app.route('/contact')
+def contact():
+    #do something with this later, probably a github link
+    return render_template("contact.html")
+    
+@app.route('/')
+def mash():
+    pic1 = random.choice(pics.keys())
+    pic2 = random.choice(pics.keys())
+    pics[pic1] += 2
+    pics[pic2] += 7
+    return render_template("hello.html", pic1 = pic1, pic2 = pic2)
 
 credentials = json.loads(open('tumblr_credentials.json', 'r').read())
 client = pytumblr.TumblrRestClient(credentials["consumer_key"], credentials["consumer_secret"], credentials["oauth_token"], credentials["oauth_token_secret"])
@@ -20,28 +41,11 @@ for blog in tosearch:
     for post in resp["posts"]:
         for orig in post["photos"]:
             pics[orig["original_size"]["url"]] = 0
-            
-running = True        
-def total():
-    #print out all sorted dictionary elements with a value of 1 or greater
-    print "todo"
-    running = False
+
     
-while running:
-    pic1 = random.choice(pics.keys())
-    print pic1
-    pic2 = random.choice(pics.keys())
-    print pic2
-    s = raw_input("Please enter 1 or 2 to choose the more interesting picture or 0 to total and exit.")
-    if s == "0":
-        total()
-        break;
-    elif s == "1":
-        pics[pic1] += 1
-        print pics.get(pic1)
-    elif s == "2":
-        pics[pic2] += 1
-        print pics.get(pic2)
-    else:
-        print "Enter 1, 2 or 0"
     
+#WHY WAS THIS SO HARD    
+if __name__ == '__main__':
+    app.run(debug=True)    
+    
+        
