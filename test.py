@@ -22,6 +22,8 @@ tumblr = oauth.remote_app('tumblr',
 
 @app.route('/top')
 def total():
+    if 'tumblr_token' not in session:
+        return render_template("login.html")
     newlist = sorted(pics.items(), key=lambda x: x[1]) #this is neat
     return render_template("top.html", pics=reversed(newlist))
     
@@ -48,29 +50,6 @@ def mash():
     return render_template("hello.html", pic1 = pic1, pic2 = pic2)
 
 def setup():
-    # credentials = json.loads(open('tumblr_credentials.json', 'r').read())
-    # 
-    # consumer = oauth.Consumer(credentials["consumer_key"], credentials["consumer_secret"])
-    # client = oauth.Client(consumer)
-    # resp, content = client.request(request_token_url, "POST")
-    # request_token = dict(urlparse.parse_qsl(content))
-    # print request_token
-    # #authorize URL time!
-    # print "%s?oauth_token=%s" % (authorize_url, request_token['oauth_token'])
-    # 
-    # oauth_verifier = raw_input('Insert oauth_verifier')
-    # #sign request?
-    # token = oauth.Token(request_token['oauth_token'],
-    #     request_token['oauth_token_secret'])
-    # token.set_verifier(oauth_verifier)
-    # client = oauth.Client(consumer, token)
-    # 
-    # resp, content = client.request(access_token_url, "POST")
-    # access_token = dict(urlparse.parse_qsl(content))
-    # #get final tokens?
-    # oauth_token = access_token['oauth_token']
-    # oauth_token_secret = access_token['oauth_token_secret']
-
     client = pytumblr.TumblrRestClient(credentials["consumer_key"], credentials["consumer_secret"], session["tumblr_token"][0], session["tumblr_token"][1])
 
     following = client.following()
@@ -82,7 +61,7 @@ def setup():
         tosearch.append(blog["url"])
 
     #create dictionary with original picture URLs and set the count to 0
-    global pics
+    global pics #this is awful
     pics = {}
     for blog in tosearch:
         resp = client.posts(blog[7:].rstrip('/'), type='photo', tag='me')
@@ -102,13 +81,11 @@ def login():
 
 @app.route('/logout')
 def logout():
-    print session
     session.pop('tumblr_token', None)
-    print session
     setupdone = False
     return redirect(url_for('mash'))
  
-#i'm really not entirely sure why i need this, I don't think i do
+#i'm really not entirely sure why i need this
 @tumblr.tokengetter
 def get_token():
     return session.get('tumblr_token')
