@@ -2,7 +2,6 @@ import pytumblr
 import json
 import random
 from flask_oauth import OAuth
-import urlparse
 from flask import *
 
 app = Flask(__name__)
@@ -39,6 +38,9 @@ def update():
     
 @app.route('/')
 def mash():
+    print session
+    if 'tumblr_token' not in session:
+        return render_template("login.html")
     if not setupdone:
         setup()
     pic1 = random.choice(pics.keys())
@@ -91,11 +93,21 @@ def setup():
     setupdone = True
     
     
-@app.route('/login')
+@app.route('/login', methods=['GET','POST'])
 def login():
+    if session.has_key('tumblr_token'):
+        session.pop('tumblr_token', None)
     return tumblr.authorize(callback=url_for('oauth_authorized',
         next=request.args.get('next') or request.referrer or None))
 
+@app.route('/logout')
+def logout():
+    print session
+    session.pop('tumblr_token', None)
+    print session
+    setupdone = False
+    return redirect(url_for('mash'))
+ 
 #i'm really not entirely sure why i need this, I don't think i do
 @tumblr.tokengetter
 def get_token():
@@ -104,16 +116,11 @@ def get_token():
 @app.route('/oauth-authorized')
 @tumblr.authorized_handler
 def oauth_authorized(resp):
-    if session.has_key('tumblr_token'):
-        del session['tumblr_token ']
-    
-
     session['tumblr_token'] = (
        resp['oauth_token'],
        resp['oauth_token_secret']
     )
-    
-    return mash()   
+    return redirect(url_for('mash')) 
     
         
 if __name__ == '__main__':
