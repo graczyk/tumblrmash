@@ -1,6 +1,7 @@
 import pytumblr
 import json
 import random
+import copy
 from flask_oauth import OAuth
 from flask import *
 
@@ -24,7 +25,12 @@ tumblr = oauth.remote_app('tumblr',
 def total():
     if 'tumblr_token' not in session:
         return render_template("login.html")
-    newlist = sorted(pics.items(), key=lambda x: x[1]) #this is neat
+    dict2 = {}
+    dict2 = copy.deepcopy(pics)
+    for x in dict2.keys():
+        if dict2[x] == 0:
+            del dict2[x]    
+    newlist = sorted(dict2.items(), key=lambda x: x[1]) #this is neat
     return render_template("top.html", pics=reversed(newlist))
     
 @app.route('/contact')
@@ -40,7 +46,6 @@ def update():
     
 @app.route('/')
 def mash():
-    print session
     if 'tumblr_token' not in session:
         return render_template("login.html")
     if not setupdone:
@@ -82,6 +87,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('tumblr_token', None)
+    global setupdone
     setupdone = False
     return redirect(url_for('mash'))
  
