@@ -1,16 +1,25 @@
 import pytumblr
 import json
 import random
-import oauth2 as oauth
+from flask_oauth import OAuth
 import urlparse
 from flask import *
 
-request_token_url = 'http://www.tumblr.com/oauth/request_token'
-authorize_url = 'http://www.tumblr.com/oauth/authorize'
-access_token_url = 'http://www.tumblr.com/oauth/access_token'
-
 app = Flask(__name__)
 setupdone = False
+
+app.secret_key = 'people who think they know everything really like lisp'
+
+oauth = OAuth()
+credentials = json.loads(open('tumblr_credentials.json', 'r').read())
+tumblr = oauth.remote_app('tumblr',
+    base_url='api.tumblr.com/v2',
+    request_token_url='http://www.tumblr.com/oauth/request_token',
+    access_token_url='http://www.tumblr.com/oauth/access_token',
+    authorize_url='http://www.tumblr.com/oauth/authorize',
+    consumer_key=credentials["consumer_key"],
+    consumer_secret=credentials["consumer_secret"]
+)
 
 @app.route('/top')
 def total():
@@ -36,36 +45,31 @@ def mash():
     pic2 = random.choice(pics.keys())
     return render_template("hello.html", pic1 = pic1, pic2 = pic2)
 
-
 def setup():
-    credentials = json.loads(open('tumblr_credentials.json', 'r').read())
+    # credentials = json.loads(open('tumblr_credentials.json', 'r').read())
+    # 
+    # consumer = oauth.Consumer(credentials["consumer_key"], credentials["consumer_secret"])
+    # client = oauth.Client(consumer)
+    # resp, content = client.request(request_token_url, "POST")
+    # request_token = dict(urlparse.parse_qsl(content))
+    # print request_token
+    # #authorize URL time!
+    # print "%s?oauth_token=%s" % (authorize_url, request_token['oauth_token'])
+    # 
+    # oauth_verifier = raw_input('Insert oauth_verifier')
+    # #sign request?
+    # token = oauth.Token(request_token['oauth_token'],
+    #     request_token['oauth_token_secret'])
+    # token.set_verifier(oauth_verifier)
+    # client = oauth.Client(consumer, token)
+    # 
+    # resp, content = client.request(access_token_url, "POST")
+    # access_token = dict(urlparse.parse_qsl(content))
+    # #get final tokens?
+    # oauth_token = access_token['oauth_token']
+    # oauth_token_secret = access_token['oauth_token_secret']
 
-    consumer = oauth.Consumer(credentials["consumer_key"], credentials["consumer_secret"])
-    client = oauth.Client(consumer)
-    resp, content = client.request(request_token_url, "POST")
-    request_token = dict(urlparse.parse_qsl(content))
-    print request_token
-    #authorize URL time!
-    print "%s?oauth_token=%s" % (authorize_url, request_token['oauth_token'])
-
-    oauth_verifier = raw_input('Insert oauth_verifier')
-    #http://www.tumblr.com/oauth/todo.us?oauth_token=NpIuSQeS7ylqQLE9myDXbo97zHwQCW2lCxp15mw8FvmDjZoJqr&oauth_verifier=fze5EExWh54b9Ocv0FdbHXEos1HrxHriV6bsfp175iCioyClyg#_=_
-    #sign request?
-    token = oauth.Token(request_token['oauth_token'],
-        request_token['oauth_token_secret'])
-    token.set_verifier(oauth_verifier)
-    client = oauth.Client(consumer, token)
-
-    resp, content = client.request(access_token_url, "POST")
-    access_token = dict(urlparse.parse_qsl(content))
-    #get final tokens?
-    print "    - oauth_token        = %s" % access_token['oauth_token']
-    print "    - oauth_token_secret = %s" % access_token['oauth_token_secret']
-
-    oauth_token = access_token['oauth_token']
-    oauth_token_secret = access_token['oauth_token_secret']
-
-    client = pytumblr.TumblrRestClient(credentials["consumer_key"], credentials["consumer_secret"], oauth_token, oauth_token_secret)
+    client = pytumblr.TumblrRestClient(credentials["consumer_key"], credentials["consumer_secret"], session["tumblr_token"][0], session["tumblr_token"][1])
 
     following = client.following()
 
@@ -87,8 +91,31 @@ def setup():
     setupdone = True
     
     
-#WHY WAS THIS SO HARD    
+@app.route('/login')
+def login():
+    return tumblr.authorize(callback=url_for('oauth_authorized',
+        next=request.args.get('next') or request.referrer or None))
+
+#i'm really not entirely sure why i need this, I don't think i do
+@tumblr.tokengetter
+def get_token():
+    return session.get('tumblr_token')
+
+@app.route('/oauth-authorized')
+@tumblr.authorized_handler
+def oauth_authorized(resp):
+    if session.has_key('tumblr_token'):
+        del session['tumblr_token ']
+    
+
+    session['tumblr_token'] = (
+       resp['oauth_token'],
+       resp['oauth_token_secret']
+    )
+    
+    return mash()   
+    
+        
 if __name__ == '__main__':
     app.run(debug=True)    
     
-        
