@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block head %} 
         <h1>Choose the preferred image</h1>
-		<div align="left">
+		<div align="left" style="float:left;width:50%">
 		<img style="height:auto; width:auto; max-width:400px; max-height:500px;" src= {{ pic1 }} > 
 		<form action="/update" method="post">
 	    <button type="submit" name="action" value="{{ pic1 }}">Choose 1</button>
 		</form> </div>
-		<div align="right">
+		<div align="right" style="float:left;width:50%">
 		<img style="height:auto; width:auto; max-width:400px; max-height:500px;" src= {{ pic2 }} >
 		<form action="/update" method="post">
 		<button type="submit" name="action" value="{{ pic2 }}">Choose 2</button>
